@@ -64,7 +64,6 @@
       <#nested "info">
     </#if>
   </#assign>
-
   <html<#if realm.internationalizationEnabled> lang="${locale.currentLanguageTag}"</#if>>
     <head>
       <@document.kw script=script />
@@ -78,6 +77,9 @@
             <@localeProvider.kw currentLocale=locale.current locales=locale.supported />
           </#if>
         </@nav.kw>
+        <div class="mt-4 text-center text-sm text-gray-500">
+          &copy; 2025 vpdkbacninh.vn | haihv.vn
+        </div>
       </@container.kw>
     </@body.kw>
   </html>

@@ -8,8 +8,41 @@
 <#import "components/molecules/identity-provider.ftl" as identityProvider>
 <#import "features/labels/username.ftl" as usernameLabel>
 
-<#assign usernameLabel><@usernameLabel.kw /></#assign>
+<#-- Macro to render a single provider button -->
+<#macro renderProviderButton p useFullName=false>
+  <#-- Attempt to import the provider icon dynamically -->
+  <#attempt>
+    <#assign provider_icon_path = "assets/providers/" + p.alias + ".ftl">
+    <#import provider_icon_path as providerIcon>
+  <#recover>
+    <#-- Fallback if the specific provider icon doesn't exist -->
+    <#assign providerIcon = "">
+  </#attempt>
 
+  <a
+    href="${p.loginUrl}"
+    class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-500 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 <#if useFullName>w-full</#if>"
+    id="social-${p.alias}"
+    type="button"
+  >
+    <#if providerIcon?has_content>
+      <span class="h-5 w-5" aria-hidden="true">
+        <@providerIcon.kw name=p.displayName />
+      </span>
+      <span class="ml-2">${p.displayName!}</span> <#-- Display name next to icon -->
+    <#else>
+      <#-- Fallback if icon FTL couldn't be loaded -->
+      <#if p.iconClasses?has_content>
+        <i class="${properties.kcSocialButtonIconClass!} ${p.iconClasses!}" aria-hidden="true"></i>
+        <span class="sr-only">${p.displayName!}</span>
+      <#else>
+        <span class="">${p.displayName!}</span>
+      </#if>
+    </#if>
+  </a>
+</#macro>
+
+<#assign usernameLabel><@usernameLabel.kw /></#assign>
 <@layout.registrationLayout
   displayInfo=realm.password && realm.registrationAllowed && !registrationDisabled??
   displayMessage=!messagesPerField.existsError("username", "password")
@@ -80,8 +113,30 @@
       </div>
     </#if>
   <#elseif section="socialProviders">
-    <#if realm.password && social.providers??>
-      <@identityProvider.kw providers=social.providers />
-    </#if>
+      <#if social.providers?? && social.providers?has_content>
+        <#-- Separator -->
+        <div class="mt-6">
+          <div class="relative">
+            <div class="absolute inset-0 flex items-center" aria-hidden="true">
+              <div class="w-full border-t border-gray-300 dark:border-gray-600"></div>
+            </div>
+            <div class="relative flex justify-center text-sm">
+              <span class="bg-white px-2 text-gray-500 dark:bg-gray-900 dark:text-gray-400">
+                ${msg("identity-provider-login-label")}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <#-- Buttons Container - Stacked and Centered -->
+        <div class="mt-6 flex flex-col items-center gap-4"> <#-- Increased gap from gap-3 to gap-4 -->
+          <#-- Loop through all providers -->
+          <#list social.providers as p>
+            <div class="w-full max-w-xs"> <#-- Container for each button to control max-width -->
+              <@renderProviderButton p=p useFullName=true /> <#-- Always use full name for w-full -->
+            </div>
+          </#list>
+        </div>
+      </#if>
   </#if>
 </@layout.registrationLayout>
